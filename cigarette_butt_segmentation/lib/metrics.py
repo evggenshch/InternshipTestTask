@@ -58,7 +58,7 @@ def get_dice(true, pred):
     -----
     Masks should contains only 2 unique values, one of them must be 0, another value, that denotes
     object, could be different from 1 (for example 255).
-    
+
     """
     assert type(true) == type(pred), "Types of true and pred should be the same."
     if isinstance(true, list):
