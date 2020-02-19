@@ -1,5 +1,7 @@
-
 import torch
+
+from lib import *
+
 from torch.utils.data import Dataset, DataLoader
 
 def fit_epoch(model, train_loader, criterion, optimizer):
@@ -21,8 +23,8 @@ def fit_epoch(model, train_loader, criterion, optimizer):
         running_corrects += torch.sum(preds == labels.data)
         processed_data += inputs.size(0)
 
-    train_loss = running_loss / processed_data
-    train_acc = running_corrects.cpu().numpy() / processed_data
+    #train_loss = #running_loss / processed_data
+    #train_acc = running_corrects.cpu().numpy() / processed_data
     return train_loss, train_acc
 
 def eval_epoch(model, val_loader, criterion):
@@ -84,8 +86,3 @@ def predict(model, test_loader):
 
     probs = nn.functional.softmax(torch.cat(logits), dim=-1).numpy()
     return probs
-
-n_classes = len(np.unique(train_val_labels))
-simple_cnn = SimpleCnn(n_classes).to(DEVICE)
-print("we will classify :{}".format(n_classes))
-print(simple_cnn)

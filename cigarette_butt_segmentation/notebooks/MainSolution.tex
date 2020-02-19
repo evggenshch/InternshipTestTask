@@ -292,7 +292,7 @@
     
 
     
-    \subsection{1. Постановка
+    \section{1. Постановка
 задачи}\label{ux43fux43eux441ux442ux430ux43dux43eux432ux43aux430-ux437ux430ux434ux430ux447ux438}
 
     Требуется: предложить модель, сегментирующую окурок сигареты на
@@ -301,38 +301,24 @@
 Вход: фотография 512x512x3. Выход: маска окурка сигареты 512x512.
 Метрика: Dice coefficient.
 
-Ссылка на скачивание данных: link.
-
-Данные представляют из себя набор синтетически сгенерированных
-фотографий окурков сигарет и маски, определяющей их на фотографии, а
-также координаты ограничивающего их бокса.
-
-Доступные данные разделены на несколько папок:
-
-real\_test содержит фотографии 512x512x3; train/images содержит
-фотографии 512x512x3; train/coco\_annotations.json содержит аннотации в
-формате COCO; val/images содержит фотографии 512x512x3;
-val/coco\_annotations.json содержит аннотации в формате COCO.
-
-Для лучшей модели требуется создать 2 файла, которые необходимы для
-валидации Вашего решения:
-
-сохраненные маски для картинок из valid в формате
-pred\_valid\_template.csv (в архиве с data) и залить его с тем же именем
-(см. notebooks/GettingStarted.ipynb); html страницу с предсказанием
-модели для всех картинок из real\_test и папку с используемыми
-картинками в этой html странице для её просмотра. Создать zip файл c
-html и изображениями и залить его в папку results (см.
-notebooks/GettingStarted.ipynb) Также необходимо: \cite{riesen2008iam}
-
-подготовить код (сам репозиторий) для проверки (докстринги, PEP8);
-создать отчет (можно прямо в ноутбуке) с описанием Вашего исследования,
-предобработки, постобработки, проверямых гипотез, используемых моделей,
-описание лучшего подхода и т.п. (он должен лежать в папке notebooks);
+Также необходимо: \cite{riesen2008iam}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}4}]:} \PY{c+c1}{\PYZsh{}import getpass}
-        \PY{c+c1}{\PYZsh{}import os}
+{\color{incolor}In [{\color{incolor}1}]:} \PY{k+kn}{import} \PY{n+nn}{os}
+        \PY{n}{os}\PY{o}{.}\PY{n}{chdir}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{..}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        
+        \PY{k+kn}{import} \PY{n+nn}{cv2}
+        \PY{k+kn}{import} \PY{n+nn}{json}
+        \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+        \PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+        \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+        \PY{k+kn}{from} \PY{n+nn}{PIL} \PY{k}{import} \PY{n}{Image}
+        
+        \PY{k+kn}{from} \PY{n+nn}{glob} \PY{k}{import} \PY{n}{glob}
+        
+        \PY{k+kn}{from} \PY{n+nn}{lib} \PY{k}{import} \PY{o}{*}
+        
+        \PY{k+kn}{import} \PY{n+nn}{getpass}
         
         \PY{c+c1}{\PYZsh{}password = getpass.getpass()}
         \PY{c+c1}{\PYZsh{}command\PYZus{}install\PYZus{}latex = \PYZdq{}sudo \PYZhy{}S apt\PYZhy{}get install texlive\PYZhy{}latex\PYZhy{}extra\PYZdq{} }
@@ -341,37 +327,145 @@ notebooks/GettingStarted.ipynb) Также необходимо: \cite{riesen200
         \PY{c+c1}{\PYZsh{}os.system(\PYZsq{}echo \PYZpc{}s | \PYZpc{}s\PYZsq{} \PYZpc{} (password, command\PYZus{}install\PYZus{}bibtex))}
 \end{Verbatim}
 
+    \section{2. Данные}\label{ux434ux430ux43dux43dux44bux435}
+
+    \subsection{2.1 Исходные
+данные}\label{ux438ux441ux445ux43eux434ux43dux44bux435-ux434ux430ux43dux43dux44bux435}
+
+Данные представляют из себя набор синтетически сгенерированных
+фотографий окурков сигарет и маски, определяющей их на фотографии, а
+также координаты ограничивающего их бокса.
+
+Доступные данные разделены на несколько папок:
+
+\begin{itemize}
+\tightlist
+\item
+  real\_test содержит 10 фотографий 512x512x3;
+\item
+  train/images содержит 2000 фотографии 512x512x3;
+\item
+  train/coco\_annotations.json содержит аннотации в формате COCO;
+\item
+  val/images содержит 200 фотографий 512x512x3;
+\item
+  val/coco\_annotations.json содержит аннотации в формате COCO.
+\end{itemize}
+
     \begin{Verbatim}[commandchars=\\\{\}]
-········
-
-    \end{Verbatim}
-
-\begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}4}]:} 0
+{\color{incolor}In [{\color{incolor}6}]:} \PY{k+kn}{from} \PY{n+nn}{itertools} \PY{k}{import} \PY{n}{repeat}\PY{p}{,} \PY{n}{cycle}
+        
+        \PY{n}{path} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{data/train}\PY{l+s+s2}{\PYZdq{}}
+        \PY{n}{images} \PY{o}{=} \PY{n}{os}\PY{o}{.}\PY{n}{listdir}\PY{p}{(}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}path\PYZcb{}}\PY{l+s+s2}{/images}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{annotations} \PY{o}{=} \PY{n}{json}\PY{o}{.}\PY{n}{load}\PY{p}{(}\PY{n+nb}{open}\PY{p}{(}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}path\PYZcb{}}\PY{l+s+s2}{/coco\PYZus{}annotations.json}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{r}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{)}
+        \PY{n}{img\PYZus{}ids} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{n}{repeat}\PY{p}{(}\PY{n+nb}{int}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{random}\PY{o}{.}\PY{n}{choice}\PY{p}{(}\PY{n}{images}\PY{p}{)}\PY{o}{.}\PY{n}{split}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{.}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{l+m+mi}{5}\PY{p}{)}\PY{p}{)}
+        
+        \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{:}
+            \PY{n}{img} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{n}{Image}\PY{o}{.}\PY{n}{open}\PY{p}{(}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}path\PYZcb{}}\PY{l+s+s2}{/images/}\PY{l+s+si}{\PYZob{}img\PYZus{}ids[i]:08\PYZcb{}}\PY{l+s+s2}{.jpg}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{)}
+            \PY{n}{mask} \PY{o}{=} \PY{n}{get\PYZus{}mask}\PY{p}{(}\PY{n}{img\PYZus{}id}\PY{p}{,} \PY{n}{annotations}\PY{p}{)}
+            \PY{n}{show\PYZus{}img\PYZus{}with\PYZus{}mask}\PY{p}{(}\PY{n}{img}\PY{p}{,} \PY{n}{mask}\PY{p}{)}
 \end{Verbatim}
-            
-    \subsection{2. Предполагаемые подходы к
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{MainSolution_files/MainSolution_5_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{MainSolution_files/MainSolution_5_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{MainSolution_files/MainSolution_5_2.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{MainSolution_files/MainSolution_5_3.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{MainSolution_files/MainSolution_5_4.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \subsection{2.2 Выходные
+данные}\label{ux432ux44bux445ux43eux434ux43dux44bux435-ux434ux430ux43dux43dux44bux435}
+
+    Для лучшей модели требуется создать 2 файла, которые необходимы для
+валидации Вашего решения:
+
+\begin{itemize}
+\tightlist
+\item
+  сохраненные маски для картинок из valid в формате
+  pred\_valid\_template.csv
+\item
+  html страница с предсказанием модели для всех картинок из real\_test и
+  папку с используемыми картинками в этой html странице для её
+  просмотра.
+\end{itemize}
+
+    \section{3. Предполагаемые подходы к
 решению}\label{ux43fux440ux435ux434ux43fux43eux43bux430ux433ux430ux435ux43cux44bux435-ux43fux43eux434ux445ux43eux434ux44b-ux43a-ux440ux435ux448ux435ux43dux438ux44e}
 
-    Аугментации:
+    \subsection{3.1
+Аугментации}\label{ux430ux443ux433ux43cux435ux43dux442ux430ux446ux438ux438}
+
+\subsubsection{Подходящие
+аугментации:}\label{ux43fux43eux434ux445ux43eux434ux44fux449ux438ux435-ux430ux443ux433ux43cux435ux43dux442ux430ux446ux438ux438}
 
 \begin{itemize}
-\tightlist
 \item
   Rotation
+\item
+  Padding UNet type architecture require input image size be divisible
+  by \(2^N\), where \(N\) is th enumber of the maxpooling layers. In the
+  vanilla UNet \(N=5\) \(\Longrightarrow\) we need to pad input images
+  to the closest divisible by \(2^5 = 32\) number which is 128. This
+  operation may be performed using PadIfNeeded transformation. Which
+  pads both image and mask on all four sides. Padding type (zero,
+  constant, reflection) may be specified. Default padding is reflection
+  padding.
 \end{itemize}
 
-Архитектуры нейронных сетей:
+\subsubsection{Какие аугментации могут
+подойти:}\label{ux43aux430ux43aux438ux435-ux430ux443ux433ux43cux435ux43dux442ux430ux446ux438ux438-ux43cux43eux433ux443ux442-ux43fux43eux434ux43eux439ux442ux438}
 
 \begin{itemize}
 \tightlist
 \item
-  U-Net
-\item
-  RetinaNet
+  fffff
 \end{itemize}
 
-    \subsection{3.}\label{section}
+\subsubsection{Какие аугментации не
+подойдут:}\label{ux43aux430ux43aux438ux435-ux430ux443ux433ux43cux435ux43dux442ux430ux446ux438ux438-ux43dux435-ux43fux43eux434ux43eux439ux434ux443ux442}
+
+\begin{itemize}
+\tightlist
+\item
+  Blur, зашумление: данные аугментации не дают качественно новых данных
+  из-за сохранения пространственной структуры объектов на изображении
+\end{itemize}
+
+\subsection{3.2 Модели}\label{ux43cux43eux434ux435ux43bux438}
+
+\subsubsection{Архитектуры нейронных
+сетей:}\label{ux430ux440ux445ux438ux442ux435ux43aux442ux443ux440ux44b-ux43dux435ux439ux440ux43eux43dux43dux44bux445-ux441ux435ux442ux435ux439}
+
+\begin{itemize}
+\tightlist
+\item
+  U-Net (\emph{U-Net: Convolutional Networks for Biomedical Image
+  Segmentation O. Ronneberger, P. Fischer, and T. Brox. page 234-\/-241.
+  Springer International Publishing, Cham, (2015)})
+\item
+  RetinaNet
+\item
+  Mask- RCNN
+\end{itemize}
 
     \subsection{4.}\label{section}
 
