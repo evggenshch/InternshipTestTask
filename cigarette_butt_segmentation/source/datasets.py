@@ -1,8 +1,5 @@
 #   Создание датасета, включает считывание исходных данных
 #   с диска, их предобработку, аугментацию и перемешивание
-
-
-
 import cv2
 import json
 import numpy as np
@@ -28,42 +25,53 @@ DATA_MODES = ['train', 'val', 'test']
 
 class CigaretteButtDataset(Dataset):
 
-    def __init__(self, file, mode):
-        super().__init__()
-        self.files = sorted(files)
-        self.mode = mode
+    def __init__(self,
+                 img_dpath,
+                 img_fnames,
+                 img_transform,
+                 mask_encodings=None,
+                 mask_size=None,
+                 mask_transform=None):
+        self.img_dpath = img_dpath
+        self.img_fnames = img_fnames
+        self.img_transform = img_transform
 
-        if self.mode not in DATA_MODES:
-            print(f"{self.mode} is not correct; correct modes: {DATA_MODES}")
-            raise NameError
+        self.mask_encodings = mask_encodings
+        self.mask_size = mask_size
+        self.mask_transform = mask_transform
 
-        self.len_ = len(self.files)
+    def __getitem__(self, i):
+
+        seed = np.random.randint(2147483647)
+
+        fname = self.img_fnames[i]
+        fpath = os.path.join(self.img_dpath, fname)
+        img = Image.open(fpath)
+        if self.img_transform is not None:
+            random.seed(seed)
+            img = self.img_transform(img)
+
+        if self.mask_encodings is None:
+            return img, fname
+
+        if self.mask_size is None or self.mask_transform is None:
+            raise ValueError('If mask_dpath is not None, mask_size and mask_transform must not be None.')
+
+        mask = np.zeros(self.mask_size, dtype=np.uint8)
+        if self.mask_encodings[fname][0] == self.mask_encodings[fname][0]: # NaN doesn't equal to itself
+            for encoding in self.mask_encodings[fname]:
+                mask += rle_decode(encoding, self.mask_size)
+        mask = np.clip(mask, 0, 1)
+
+        mask = Image.fromarray(mask)
+
+        random.seed(seed)
+        mask = self.mask_transform(mask)
+
+        return img, torch.from_numpy(np.array(mask, dtype=np.int64))
 
     def __len__(self):
-        return self.len_
-
-    def load_sample(self, file):
-        image = Image.open(file)
-        image.load()
-        return image
-
-    def __getitem__(self, index):
-        # для преобразования изображений в тензоры PyTorch и нормализации входа
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-        x = self.load_sample(self.files[index])
-        x = self._prepare_sample(x)
-        x = np.array(x / 255, dtype='float32')
-        x = transform(x)
-        if self.mode == 'test':
-            return x
-        else:
-            label = self.labels[index]
-            label_id = self.label_encoder.transform([label])
-            y = label_id.item()
-            return x, y
+        return len(self.img_fnames)
 
 def prepare_datasets():
 
